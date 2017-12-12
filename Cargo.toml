@@ -1,0 +1,8 @@
+[package]
+name = "fcg"
+version = "0.1.0"
+authors = ["coeuvre@gmail.com"]
+build = "build.rs"
+
+[build-dependencies]
+cc = "*"
