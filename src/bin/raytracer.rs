@@ -38,6 +38,10 @@ impl ImageBuffer {
     }
 }
 
+pub fn rgba(r: u8, g: u8, b: u8, a: u8) -> u32 {
+    (r as u32) + ((g as u32) << 8) + ((b as u32) << 16) + ((a as u32) << 24)
+}
+
 pub struct Camera {
     p: Vec3,
 }
@@ -56,14 +60,28 @@ impl Camera {
 fn main() {
     const BACKGROUND_COLOR: u32 = 0xFF000000;
     let mut ib = ImageBuffer::new(1920, 1080);
-    let camera = Camera::new(Vec3::new(960.0, 540.0, -100.0));
-    let sphere = Sphere::new(Vec3::new(960.0, 540.0, 100.0), 100.0);
+    let camera = Camera::new(Vec3::new(960.0, 540.0, 100.0));
+    let sphere = Sphere::new(Vec3::new(960.0, 540.0, -100.0), 100.0);
+    let light_p = Vec3::new(960.0, 540.0, 100.0);
 
     for y in 0..ib.height {
         for x in 0..ib.width {
+            if x == 960 && y == 540 {
+                println!("");
+            }
             let camera_ray = camera.calc_camera_ray(&ib, x, y);
-            if camera_ray.hit_sphere(&sphere).len() > 0 {
-                ib.set_pixel(x, y, 0xFFFFFFFF);
+            let hits = camera_ray.hit_sphere(&sphere);
+            if hits.len() > 0 {
+                let hit = camera_ray.at(hits[0]);
+                let n = sphere.normal_at(hit);
+                let l = (light_p - hit).normalize();
+                let color = Vec3::new(1.0, 1.0, 1.0) * (n * l).max(0.0);
+                ib.set_pixel(x,
+                             y,
+                             rgba((color.x * 255.0).round() as u8,
+                                  (color.y * 255.0).round() as u8,
+                                  (color.z * 255.0).round() as u8,
+                                  255));
             } else {
                 ib.set_pixel(x, y, BACKGROUND_COLOR);
             }

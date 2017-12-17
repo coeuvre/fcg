@@ -50,6 +50,14 @@ impl Mul<Vec3> for f32 {
     }
 }
 
+impl Mul<f32> for Vec3 {
+    type Output = Vec3;
+
+    fn mul(self, rhs: f32) -> Self::Output {
+        rhs * self
+    }
+}
+
 impl Sub for Vec3 {
     type Output = Vec3;
 
@@ -98,9 +106,9 @@ pub fn solve_quadratic_equations(a: f32, b: f32, c: f32) -> Vec<f32> {
     if d == 0.0 {
         solve.push(-b / (2.0 * a));
     } else if d > 0.0 {
-        let d_sqrt = d.sqrt();
-        solve.push((-b + d_sqrt) / (2.0 * a));
-        solve.push((-b - d_sqrt) / (2.0 * a));
+        let sqrt_d = d.sqrt();
+        solve.push((-b - sqrt_d) / (2.0 * a));
+        solve.push((-b + sqrt_d) / (2.0 * a));
     }
 
     solve
@@ -114,5 +122,9 @@ pub struct Sphere {
 impl Sphere {
     pub fn new(c: Vec3, r: f32) -> Sphere {
         Sphere { c, r }
+    }
+
+    pub fn normal_at(&self, p: Vec3) -> Vec3 {
+        (p - self.c).normalize()
     }
 }
