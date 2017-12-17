@@ -1,4 +1,4 @@
-use std::ops::{Add, Sub, Mul, Div};
+use std::ops::{Add, Sub, Mul, Div, Neg};
 
 #[derive(Clone, Copy)]
 pub struct Vec3 {
@@ -23,6 +23,10 @@ impl Vec3 {
 
     pub fn len_squre(&self) -> f32 {
         self.x * self.x + self.y * self.y + self.z * self.z
+    }
+
+    pub fn clamp(&self, v: f32) -> Vec3 {
+        Vec3::new(self.x.min(v), self.y.min(v), self.z.min(v))
     }
 }
 
@@ -74,9 +78,17 @@ impl Div<f32> for Vec3 {
     }
 }
 
+impl Neg for Vec3 {
+    type Output = Vec3;
+
+    fn neg(self) -> Self::Output {
+        Vec3::new(-self.x, -self.y, -self.z)
+    }
+}
+
 pub struct Ray3 {
-    e: Vec3,
-    d: Vec3,
+    pub e: Vec3,
+    pub d: Vec3,
 }
 
 impl Ray3 {

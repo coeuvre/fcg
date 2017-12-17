@@ -62,7 +62,7 @@ fn main() {
     let mut ib = ImageBuffer::new(1920, 1080);
     let camera = Camera::new(Vec3::new(960.0, 540.0, 100.0));
     let sphere = Sphere::new(Vec3::new(960.0, 540.0, -100.0), 100.0);
-    let light_p = Vec3::new(960.0, 540.0, 100.0);
+    let light_p = Vec3::new(990.0, 590.0, 100.0);
 
     for y in 0..ib.height {
         for x in 0..ib.width {
@@ -75,7 +75,10 @@ fn main() {
                 let hit = camera_ray.at(hits[0]);
                 let n = sphere.normal_at(hit);
                 let l = (light_p - hit).normalize();
-                let color = Vec3::new(1.0, 1.0, 1.0) * (n * l).max(0.0);
+                let v = -camera_ray.d;
+                let h = (l + v).normalize();
+                let i = Vec3::new(1.0, 1.0, 1.0);
+                let color = (i * (n * l).max(0.0) + i * (n * h).max(0.0).powf(100.0)).clamp(1.0);
                 ib.set_pixel(x,
                              y,
                              rgba((color.x * 255.0).round() as u8,
