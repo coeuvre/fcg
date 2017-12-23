@@ -1,6 +1,6 @@
 use std::ops::{Add, Sub, Mul, Div, Neg};
 
-#[derive(Clone, Copy)]
+#[derive(Clone, Copy, PartialEq)]
 pub struct Vec3 {
     pub x: f32,
     pub y: f32,
@@ -127,8 +127,8 @@ pub fn solve_quadratic_equations(a: f32, b: f32, c: f32) -> Vec<f32> {
 }
 
 pub struct Sphere {
-    c: Vec3,
-    r: f32,
+    pub c: Vec3,
+    pub r: f32,
 }
 
 impl Sphere {

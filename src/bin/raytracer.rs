@@ -54,20 +54,21 @@ impl Camera {
     pub fn calc_camera_ray(&self, ib: &ImageBuffer, x_pixel: u32, y_pixel: u32) -> Ray3 {
         let x = x_pixel as f32;
         let y = (ib.height - y_pixel - 1) as f32;
-        // let p = Vec3::new(x, y, 0.0);
-        Ray3::new(Vec3::new(x, y, self.p.z), Vec3::new(0.0, 0.0, -1.0))
+        let p = Vec3::new(x, y, 0.0);
+        Ray3::new(self.p, (p - self.p).normalize())
     }
 }
 
 fn main() {
     const BACKGROUND_COLOR: u32 = 0xFF000000;
     let mut ib = ImageBuffer::new(1920, 1080);
-    let camera = Camera::new(Vec3::new(960.0, 540.0, 50.0));
-    let light_p = Vec3::new(990.0, 590.0, 100.0);
+    let camera = Camera::new(Vec3::new(960.0, 540.0, 1000.0));
+    let light_p = Vec3::new(990.0, 330.0, 100.0);
     let ambient_color = Vec3::new(0.1, 0.1, 0.1);
     let spheres = vec![Sphere::new(Vec3::new(960.0, 540.0, -100.0), 100.0),
                        Sphere::new(Vec3::new(1300.0, 640.0, -90.0), 90.0),
-                       Sphere::new(Vec3::new(760.0, 340.0, -120.0), 80.0)];
+                       Sphere::new(Vec3::new(760.0, 340.0, -120.0), 80.0),
+                       Sphere::new(light_p, 6.0)];
 
     for y in 0..ib.height {
         for x in 0..ib.width {
@@ -89,15 +90,24 @@ fn main() {
                 .collect::<Vec<_>>();
             hits.sort_by(|a, b| a.t.partial_cmp(&b.t).unwrap());
             if hits.len() > 0 {
-                let hit = camera_ray.at(hits[0].t);
-                let n = hits[0].sphere.normal_at(hit);
-                let l = (light_p - hit).normalize();
-                let v = -camera_ray.d;
-                let h = (l + v).normalize();
+                let color;
+                let sphere = hits[0].sphere;
+                let t = hits[0].t;
                 let i = Vec3::new(1.0, 1.0, 1.0);
-                let color = (ambient_color + i * (n * l).max(0.0) +
+
+                if sphere.c == light_p {
+                    color = i;
+                } else {
+                    let hit = camera_ray.at(t);
+                    let n = sphere.normal_at(hit);
+                    let l = (light_p - hit).normalize();
+                    let v = -camera_ray.d;
+                    let h = (l + v).normalize();
+                    color = (ambient_color + i * (n * l).max(0.0) +
                              i * (n * h).max(0.0).powf(100.0))
-                        .clamp(1.0);
+                            .clamp(1.0);
+                }
+
                 ib.set_pixel(x,
                              y,
                              rgba((color.x * 255.0).round() as u8,
