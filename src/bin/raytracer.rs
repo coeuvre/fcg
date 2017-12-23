@@ -52,15 +52,17 @@ impl Camera {
     }
 
     pub fn calc_camera_ray(&self, ib: &ImageBuffer, x_pixel: u32, y_pixel: u32) -> Ray3 {
-        let p = Vec3::new(x_pixel as f32, (ib.height - y_pixel - 1) as f32, 0.0);
-        Ray3::new(self.p, (p - self.p).normalize())
+        let x = x_pixel as f32;
+        let y = (ib.height - y_pixel - 1) as f32;
+        // let p = Vec3::new(x, y, 0.0);
+        Ray3::new(Vec3::new(x, y, self.p.z), Vec3::new(0.0, 0.0, -1.0))
     }
 }
 
 fn main() {
     const BACKGROUND_COLOR: u32 = 0xFF000000;
     let mut ib = ImageBuffer::new(1920, 1080);
-    let camera = Camera::new(Vec3::new(960.0, 540.0, 100.0));
+    let camera = Camera::new(Vec3::new(960.0, 540.0, 50.0));
     let light_p = Vec3::new(990.0, 590.0, 100.0);
     let ambient_color = Vec3::new(0.1, 0.1, 0.1);
     let spheres = vec![Sphere::new(Vec3::new(960.0, 540.0, -100.0), 100.0),
@@ -69,6 +71,11 @@ fn main() {
 
     for y in 0..ib.height {
         for x in 0..ib.width {
+            struct Hit<'a> {
+                t: f32,
+                sphere: &'a Sphere,
+            }
+
             let camera_ray = camera.calc_camera_ray(&ib, x, y);
             let mut hits = spheres
                 .iter()
@@ -76,15 +83,14 @@ fn main() {
                               camera_ray
                                   .hit_sphere(sphere)
                                   .into_iter()
-                                  .map(|hit| (sphere, hit))
+                                  .map(|t| Hit { t, sphere })
                                   .collect::<Vec<_>>()
                           })
                 .collect::<Vec<_>>();
-            hits.sort_by(|a, b| a.1.partial_cmp(&b.1).unwrap());
+            hits.sort_by(|a, b| a.t.partial_cmp(&b.t).unwrap());
             if hits.len() > 0 {
-                let (sphere, t) = hits[0];
-                let hit = camera_ray.at(t);
-                let n = sphere.normal_at(hit);
+                let hit = camera_ray.at(hits[0].t);
+                let n = hits[0].sphere.normal_at(hit);
                 let l = (light_p - hit).normalize();
                 let v = -camera_ray.d;
                 let h = (l + v).normalize();
