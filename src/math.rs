@@ -1,6 +1,6 @@
 use std::ops::{Add, Sub, Mul, Div, Neg};
 
-#[derive(Clone, Copy, PartialEq)]
+#[derive(Clone, Copy, Debug, PartialEq)]
 pub struct Vec3 {
     pub x: f32,
     pub y: f32,
@@ -102,7 +102,7 @@ impl Ray3 {
         let a = self.d * self.d;
         let b = 2.0 * (self.d * delta);
         let c = delta * delta - sphere.r * sphere.r;
-        solve_quadratic_equations(a, b, c)
+        solve_quadratic_equations(a, b, c).into_iter().filter(|&t| t > 0.0).collect()
     }
 
     pub fn at(&self, t: f32) -> Vec3 {
@@ -126,6 +126,7 @@ pub fn solve_quadratic_equations(a: f32, b: f32, c: f32) -> Vec<f32> {
     solve
 }
 
+#[derive(Debug)]
 pub struct Sphere {
     pub c: Vec3,
     pub r: f32,
